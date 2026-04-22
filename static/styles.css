@@ -73,6 +73,54 @@ body {
     transition: none;
 }
 
+.park-pill-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    margin: 0.2rem;
+}
+
+.favorite-toggle-btn {
+    min-width: 2rem;
+    border: 1px solid #d0d8f5;
+    background: #ffffff;
+    color: #7b8197;
+    padding: 0.15rem 0.45rem;
+    line-height: 1.2;
+}
+
+.favorite-toggle-btn.is-favorite {
+    border-color: #f4b400;
+    color: #f4b400;
+    background: #fff9e9;
+}
+
+.favorite-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem;
+    margin-bottom: 0.45rem;
+}
+
+.favorite-load-btn {
+    text-align: left;
+    flex: 1;
+}
+
+.favorite-chip {
+    border-radius: 999px;
+    border: 1px solid #d0d8f5;
+    background: #fff;
+    color: #3b4260;
+}
+
+.favorite-chip.is-favorite {
+    background: #fff9e9;
+    border-color: #f4b400;
+    color: #8b6300;
+}
+
 .wait-open {
     color: #157347;
     font-weight: 700;

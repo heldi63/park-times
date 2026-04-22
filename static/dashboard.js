@@ -1,4 +1,6 @@
+const FAVORITES_KEY = "parkFavorites";
 let parksByName = new Map();
+let parksById = new Map();
 
 function escapeHtml(input) {
     return String(input)
@@ -7,6 +9,71 @@ function escapeHtml(input) {
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
+}
+
+function getFavorites() {
+    try {
+        const raw = localStorage.getItem(FAVORITES_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+        return [];
+    }
+}
+
+function setFavorites(favorites) {
+    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+}
+
+function isFavorite(parkId) {
+    return getFavorites().some((park) => String(park.id) === String(parkId));
+}
+
+function toggleFavorite(park) {
+    const favorites = getFavorites();
+    const exists = favorites.some((item) => String(item.id) === String(park.id));
+    const next = exists
+        ? favorites.filter((item) => String(item.id) !== String(park.id))
+        : [...favorites, { id: park.id, name: park.name, group: park.group || "Unknown Group", country: park.country || "Unknown Country" }];
+    setFavorites(next);
+    renderFavorites();
+    updateFavoriteButtons();
+}
+
+function updateFavoriteButtons() {
+    document.querySelectorAll(".favorite-toggle-btn").forEach((button) => {
+        const favorite = isFavorite(button.dataset.parkId);
+        button.classList.toggle("is-favorite", favorite);
+        button.textContent = favorite ? "★" : "☆";
+        button.setAttribute("aria-label", favorite ? "Remove from favorites" : "Add to favorites");
+        button.title = favorite ? "Remove from favorites" : "Add to favorites";
+    });
+}
+
+function renderFavorites() {
+    const container = document.getElementById("favoritesContainer");
+    if (!container) return;
+    const favorites = getFavorites();
+    if (!favorites.length) {
+        container.innerHTML = '<span class="text-muted">No favorites yet. Click a star to save parks.</span>';
+        return;
+    }
+    container.innerHTML = favorites
+        .map((park) => `
+            <div class="favorite-item">
+                <button class="btn btn-outline-primary btn-sm favorite-load-btn"
+                    data-action="load-park"
+                    data-park-id="${park.id}"
+                    data-park-name="${escapeHtml(park.name)}">${escapeHtml(park.name)}</button>
+                <button class="btn btn-sm favorite-toggle-btn is-favorite"
+                    data-action="toggle-favorite"
+                    data-park-id="${park.id}"
+                    aria-label="Remove from favorites"
+                    title="Remove from favorites">★</button>
+            </div>
+        `)
+        .join("");
 }
 
 async function loadGroups() {
@@ -20,9 +87,32 @@ async function loadGroups() {
 
         const html = data.groups.map((group) => {
             const parks = group.parks || [];
-            parks.forEach((park) => parksByName.set(park.name, park.id));
+            parks.forEach((park) => {
+                parksByName.set(park.name, park.id);
+                parksById.set(String(park.id), {
+                    id: park.id,
+                    name: park.name,
+                    group: group.name || "Unknown Group",
+                    country: park.country || "Unknown Country",
+                });
+            });
             const parkButtons = parks.slice(0, 20).map(
-                (park) => `<button class="btn btn-outline-primary btn-sm park-pill" data-park-id="${park.id}" data-park-name="${escapeHtml(park.name)}">${escapeHtml(park.name)}</button>`
+                (park) => {
+                    const favorite = isFavorite(park.id);
+                    return `
+                        <span class="park-pill-wrap">
+                            <button class="btn btn-outline-primary btn-sm park-pill"
+                                data-action="load-park"
+                                data-park-id="${park.id}"
+                                data-park-name="${escapeHtml(park.name)}">${escapeHtml(park.name)}</button>
+                            <button class="btn btn-sm favorite-toggle-btn ${favorite ? "is-favorite" : ""}"
+                                data-action="toggle-favorite"
+                                data-park-id="${park.id}"
+                                aria-label="${favorite ? "Remove from favorites" : "Add to favorites"}"
+                                title="${favorite ? "Remove from favorites" : "Add to favorites"}">${favorite ? "★" : "☆"}</button>
+                        </span>
+                    `;
+                }
             ).join("");
 
             const overflow = parks.length > 20 ? `<div class="small text-muted mt-2">...and ${parks.length - 20} more parks</div>` : "";
@@ -36,6 +126,7 @@ async function loadGroups() {
         }).join("");
 
         groupsContainer.innerHTML = html || '<div class="text-muted">No groups available.</div>';
+        updateFavoriteButtons();
     } catch (error) {
         groupsContainer.innerHTML = `<div class="text-danger">${escapeHtml(error.message)}</div>`;
     }
@@ -118,10 +209,20 @@ async function refreshCache() {
 }
 
 document.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-park-id]");
+    const button = event.target.closest("[data-action]");
     if (!button) return;
-    loadQueueTimes(button.dataset.parkId, button.dataset.parkName);
+    const action = button.dataset.action;
+    if (action === "load-park") {
+        loadQueueTimes(button.dataset.parkId, button.dataset.parkName);
+        return;
+    }
+    if (action === "toggle-favorite") {
+        const park = parksById.get(String(button.dataset.parkId));
+        if (!park) return;
+        toggleFavorite(park);
+    }
 });
 
 document.getElementById("refreshCacheBtn").addEventListener("click", refreshCache);
+renderFavorites();
 loadGroups();

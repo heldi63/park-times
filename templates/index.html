@@ -21,12 +21,20 @@
         </div>
     </div>
     <div class="col-lg-7">
-        <div class="card shadow-sm h-100 glass-card float-in delay-2">
-            <div class="card-header fw-semibold bg-transparent border-0 pt-3">Queue Times</div>
-            <div class="card-body">
-                <div id="selectedParkLabel" class="mb-3 text-muted">Select a park to view queue times.</div>
-                <div id="queueSummary" class="mb-3"></div>
-                <div id="ridesContainer" class="table-responsive"></div>
+        <div class="d-flex flex-column gap-4 h-100">
+            <div class="card shadow-sm glass-card float-in delay-2">
+                <div class="card-header fw-semibold bg-transparent border-0 pt-3">My Favorites</div>
+                <div class="card-body">
+                    <div id="favoritesContainer" class="small text-muted">No favorites yet. Click a star to save parks.</div>
+                </div>
+            </div>
+            <div class="card shadow-sm h-100 glass-card float-in delay-2">
+                <div class="card-header fw-semibold bg-transparent border-0 pt-3">Queue Times</div>
+                <div class="card-body">
+                    <div id="selectedParkLabel" class="mb-3 text-muted">Select a park to view queue times.</div>
+                    <div id="queueSummary" class="mb-3"></div>
+                    <div id="ridesContainer" class="table-responsive"></div>
+                </div>
             </div>
         </div>
     </div>

@@ -1,5 +1,7 @@
+const FAVORITES_KEY = "parkFavorites";
 let parksIndex = [];
 let nameToPark = new Map();
+let currentSelectedPark = null;
 
 function escapeHtml(input) {
     return String(input)
@@ -8,6 +10,50 @@ function escapeHtml(input) {
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
+}
+
+function getFavorites() {
+    try {
+        const raw = localStorage.getItem(FAVORITES_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+        return [];
+    }
+}
+
+function setFavorites(favorites) {
+    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+}
+
+function isFavorite(parkId) {
+    return getFavorites().some((park) => String(park.id) === String(parkId));
+}
+
+function toggleFavorite(park) {
+    const favorites = getFavorites();
+    const exists = favorites.some((item) => String(item.id) === String(park.id));
+    const next = exists
+        ? favorites.filter((item) => String(item.id) !== String(park.id))
+        : [...favorites, { id: park.id, name: park.name, group: park.group || "Unknown Group", country: park.country || "Unknown Country" }];
+    setFavorites(next);
+    renderFavoriteActions();
+}
+
+function renderFavoriteActions() {
+    const actions = document.getElementById("searchFavoriteActions");
+    if (!actions) return;
+    if (!currentSelectedPark) {
+        actions.innerHTML = '<span class="small text-muted">Search for a park to add it to favorites.</span>';
+        return;
+    }
+    const favorite = isFavorite(currentSelectedPark.id);
+    actions.innerHTML = `
+        <button id="toggleSearchFavoriteBtn" class="btn btn-sm favorite-chip ${favorite ? "is-favorite" : ""}">
+            ${favorite ? "★ Remove Favorite" : "☆ Add to Favorites"}
+        </button>
+    `;
 }
 
 async function loadParksForAutocomplete() {
@@ -90,6 +136,13 @@ async function searchParkQueueTimes() {
         const response = await fetch(`/api/queue-times/${selected.id}`);
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Failed to load queue times");
+        currentSelectedPark = {
+            id: selected.id,
+            name: selected.name,
+            group: selected.group || "Unknown Group",
+            country: selected.country || "Unknown Country",
+        };
+        renderFavoriteActions();
         results.innerHTML = renderSearchResults(selected, data);
     } catch (error) {
         results.innerHTML = `<div class="text-danger">${escapeHtml(error.message)}</div>`;
@@ -103,5 +156,11 @@ document.getElementById("parkSearchInput").addEventListener("keydown", (event) =
         searchParkQueueTimes();
     }
 });
+document.addEventListener("click", (event) => {
+    const favoriteButton = event.target.closest("#toggleSearchFavoriteBtn");
+    if (!favoriteButton || !currentSelectedPark) return;
+    toggleFavorite(currentSelectedPark);
+});
 
+renderFavoriteActions();
 loadParksForAutocomplete();
