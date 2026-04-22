@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card shadow-sm glass-card float-in">
+            <div class="card-body p-4">
+                <h2 class="h4 mb-3">Search Park Wait Times</h2>
+                <p class="text-muted mb-4">Type a park name and pick from suggestions.</p>
+
+                <div class="row g-2">
+                    <div class="col-md-8">
+                        <input id="parkSearchInput" list="parkSuggestions" class="form-control modern-input" placeholder="Start typing (e.g. Disney, Universal)">
+                        <datalist id="parkSuggestions"></datalist>
+                    </div>
+                    <div class="col-md-4 d-grid">
+                        <button id="searchBtn" class="btn btn-primary glow-btn">Search Wait Times</button>
+                    </div>
+                </div>
+
+                <div id="searchHint" class="small text-muted mt-2"></div>
+                <hr class="my-4">
+                <div id="searchResults"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='search.js') }}"></script>
+{% endblock %}

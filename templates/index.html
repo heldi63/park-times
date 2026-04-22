@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="hero rounded-4 p-4 p-md-5 mb-4 text-white float-in">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div>
+            <h1 class="display-6 fw-bold mb-2">Live Theme Park Wait Times</h1>
+            <p class="mb-0 hero-subtitle">Browse park groups and load real-time queue data in one click.</p>
+        </div>
+        <button id="refreshCacheBtn" class="btn btn-warning btn-sm fw-semibold glow-btn">Refresh Park Cache</button>
+    </div>
+    <span id="cacheStatus" class="ms-2"></span>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="card shadow-sm h-100 glass-card float-in delay-1">
+            <div class="card-header fw-semibold bg-transparent border-0 pt-3">Parks by Group</div>
+            <div class="card-body">
+                <div id="groupsContainer" class="small text-muted">Loading groups...</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-7">
+        <div class="card shadow-sm h-100 glass-card float-in delay-2">
+            <div class="card-header fw-semibold bg-transparent border-0 pt-3">Queue Times</div>
+            <div class="card-body">
+                <div id="selectedParkLabel" class="mb-3 text-muted">Select a park to view queue times.</div>
+                <div id="queueSummary" class="mb-3"></div>
+                <div id="ridesContainer" class="table-responsive"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='dashboard.js') }}"></script>
+{% endblock %}
